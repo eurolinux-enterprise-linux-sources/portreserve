@@ -1,7 +1,7 @@
 Summary: TCP port reservation utility
 Name: portreserve
 Version: 0.0.4
-Release: 9%{?dist}
+Release: 11%{?dist}
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://cyberelk.net/tim/portreserve/
@@ -10,6 +10,7 @@ Patch1: portreserve-infinite-loop.patch
 Patch2: portreserve-list-remove.patch
 Patch3: portreserve-initscript-fixes.patch
 Patch4: portreserve-memleak.patch
+Patch5: portreserve-allow-overlap.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires(post): chkconfig
 Requires(preun): chkconfig
@@ -33,6 +34,8 @@ port (generally in the init script).
 %patch3 -p1 -b .initscript-fixes
 # Fix small memory leak and move malloc() check close to call (bug #718176).
 %patch4 -p1 -b .memleak
+# Allow overlapping ports (bug #848414).
+%patch5 -p1 -b .allow-overlap
 
 %build
 %configure --sbindir=/sbin
@@ -75,6 +78,13 @@ fi
 %{_mandir}/*/*
 
 %changelog
+* Thu Mar 17 2016 Martin Sehnoutka <msehnout@redhat.com> - 0.0.4-11
+- Revert change for bug #813300
+
+* Tue Jan 12 2016 Tim Waugh <twaugh@redhat.com> 0.0.4-10
+- Allow overlapping ports (bug #848414).
+- Another initscript status code fix (bug #813300).
+
 * Wed Feb  1 2012 Tim Waugh <twaugh@redhat.com> 0.0.4-9
 - Even more initscript status code fixes (bug #614924).
 

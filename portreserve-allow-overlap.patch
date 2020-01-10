@@ -1,0 +1,159 @@
+diff -U0 portreserve-0.0.4/ChangeLog.allow-overlap portreserve-0.0.4/ChangeLog
+diff -up portreserve-0.0.4/doc/portreserve.xml.allow-overlap portreserve-0.0.4/doc/portreserve.xml
+--- portreserve-0.0.4/doc/portreserve.xml.allow-overlap	2008-07-01 17:30:13.000000000 +0100
++++ portreserve-0.0.4/doc/portreserve.xml	2016-01-12 13:00:24.218429560 +0000
+@@ -7,7 +7,7 @@
+   <refentry id="portreserve">
+     <refentryinfo>
+       <productname>portreserve</productname>
+-      <date>1 July 2008</date>
++      <date>12 January 2016</date>
+       <author>
+ 	<firstname>Tim</firstname>
+ 	<surname>Waugh</surname>
+@@ -73,8 +73,12 @@
+         which instructs <command>portreserve</command> to release the
+         port associated with the service.</para>
+ 
++      <para>If more than one service configuration file refers to the
++      same port, that port is released whenever the first of the
++      overlapping services is released.</para>
++
+       <para>Once all the reserved ports have been released, the daemon
+-        exits.</para>
++      exits.</para>
+     </refsect1>
+ 
+     <refsect1>
+diff -up portreserve-0.0.4/NEWS.allow-overlap portreserve-0.0.4/NEWS
+diff -up portreserve-0.0.4/src/portreserve.c.allow-overlap portreserve-0.0.4/src/portreserve.c
+--- portreserve-0.0.4/src/portreserve.c.allow-overlap	2016-01-12 13:00:09.585499313 +0000
++++ portreserve-0.0.4/src/portreserve.c	2016-01-12 13:00:24.219429556 +0000
+@@ -77,7 +77,11 @@
+ 
+ struct map {
+ 	struct map *next;
++
+ 	char *service;
++        int type;
++        in_port_t port;
++
+ 	int socket;
+ };
+ 
+@@ -187,13 +191,24 @@ reserve (const char *file, const char *c
+ 
+ 			if (bind (sd, (struct sockaddr *) &sin,
+ 				  sizeof (sin)) == -1) {
+-				error (0, errno, "bind");
+-				continue;
++				error (0, errno, "bind for %s (%d/%s)",
++                                       client, ntohs (sin.sin_port),
++                                       protocol);
++                                if (errno != EADDRINUSE)
++                                        continue;
++
++                                /* Keep this map ready for release as
++                                 * it will cause the conflicting service to
++                                 * also be released
++                                 */
++                                sd = -1;
+ 			}
+ 
+ 			map = malloc (sizeof (*map));
+ 			if (!map)
+ 				no_memory ();
++                        map->type = type;
++                        map->port = sin.sin_port;
+ 			map->socket = sd;
+ 			map->next = maps;
+ 			map->service = strdup (client);
+@@ -201,7 +216,7 @@ reserve (const char *file, const char *c
+ 				no_memory ();
+ 			maps = map;
+ 
+-			if (debug)
++			if (sd != -1 && debug)
+ 				fprintf (stderr, "Reserved %d/%s for %s\n",
+ 					 ntohs (sin.sin_port),
+ 					 protocol, client);
+@@ -236,6 +251,52 @@ unix_socket (void)
+ 	return s;
+ }
+ 
++static struct map *
++release_socket(struct map **prev, struct map *map)
++{
++        struct map *next = map->next;
++
++        if (map->socket != -1) {
++                close (map->socket);
++
++                if (debug)
++                        fprintf (stderr, "Released service %s (%d/%s)\n",
++                                 map->service, ntohs (map->port),
++                                 map->type == SOCK_STREAM ? "tcp" : "udp");
++        }
++
++        free (map->service);
++        free (map);
++        map = next;
++        *prev = next;
++        return next;
++}
++
++static void
++release_by_port(struct map **mapsptr, int type, in_port_t port)
++{
++        struct map *m, **prev;
++        int output = 0;
++
++        prev = mapsptr;
++        m = *mapsptr;
++        while (m) {
++                if (m->type == type && m->port == port) {
++                        if (!output) {
++                                output = 1;
++                                fprintf (stderr,
++                                         "Releasing services with overlapping "
++                                         "ports\n");
++                        }
++
++                        m = release_socket(prev, m);
++                } else {
++                        prev = &m->next;
++                        m = *prev;
++                }
++        }
++}
++
+ static int
+ portreserve (void)
+ {
+@@ -289,17 +350,15 @@ portreserve (void)
+ 			while (m) {
+ 				if (!strcmp (service, "*") ||
+ 				    !strcmp (m->service, service)) {
+-					struct map *next = m->next;
+-
+-					if (debug)
+-						fprintf (stderr,
+-							 "Released service "
+-							 "%s\n", m->service);
+-					close (m->socket);
+-					free (m->service);
+-					free (m);
+-					m = next;
+-					*prev = next;
++                                        int type = m->type;
++                                        in_port_t port = m->port;
++                                        release_socket(prev, m);
++
++                                        release_by_port(&maps, type, port);
++
++                                        /* Start at the beginning of the list again */
++                                        prev = &maps;
++                                        m = maps;
+ 				} else {
+ 					prev = &m->next;
+ 					m = *prev;

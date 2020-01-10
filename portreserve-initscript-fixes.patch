@@ -1,6 +1,7 @@
-diff -up portreserve-0.0.4/portreserve.init.initscript-fixes portreserve-0.0.4/portreserve.init
---- portreserve-0.0.4/portreserve.init.initscript-fixes	2009-02-26 10:14:55.000000000 +0000
-+++ portreserve-0.0.4/portreserve.init	2012-02-01 11:42:35.430839706 +0000
+diff --git a/portreserve.init b/portreserve.init
+index ee9482c..21d46cc 100644
+--- a/portreserve.init
++++ b/portreserve.init
 @@ -19,7 +19,6 @@
  
  
