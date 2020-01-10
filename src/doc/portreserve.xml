@@ -1,0 +1,174 @@
+<?xml version='1.0'?> <!-- -*- xml -*- -->
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+ "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<article>
+  <title>TCP port reservation utility</title>
+
+  <refentry id="portreserve">
+    <refentryinfo>
+      <productname>portreserve</productname>
+      <date>1 July 2008</date>
+      <author>
+	<firstname>Tim</firstname>
+	<surname>Waugh</surname>
+	<affiliation>
+	  <address><email>twaugh@redhat.com</email></address>
+	</affiliation>
+      </author>
+    </refentryinfo>
+
+    <refmeta>
+      <refentrytitle>portreserve</refentrytitle>
+      <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+      <refname>portreserve</refname>
+      <refpurpose>reserve ports to prevent portmap mapping
+      them</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <cmdsynopsis>
+	<command>portreserve</command>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+      <title>Description</title>
+
+      <para>The <command>portreserve</command> program aims to help
+        services with well-known ports that lie in the
+        <function>bindresvport</function> range.  It prevents portmap
+        (or other programs using <function>bindresvport</function>)
+        from occupying a real service's port by occupying it itself,
+        until the real service tells it to release the port (generally
+        in its init script).</para>
+
+      <para>It is intended that <command>portreserve</command> runs
+        from an initscript of its own, and services wishing to
+        interact with it should use
+        <command>portrelease</command>.</para>
+
+      <para>When the <command>portreserve</command> daemon is started,
+        it examines the <filename class="directory"
+        path="/etc/portreserve/">/etc/portreserve/</filename>
+        directory.  Each file not containing <quote>.</quote> or
+        <quote>~</quote> in its name is considered to be a service
+        configuration file, and must contain a service name (as listed
+        in <filename path="/etc/services">/etc/services</filename>) or
+        a port number.  UDP services may be specified by appending
+        "/udp" to the service name, and TCP services by "/tcp".
+        Several services may be specified, one per line.</para>
+
+      <para>For
+        example, <filename path="/etc/portreserve/cups">/etc/portreserve/cups</filename>
+        might contain the string <quote>ipp</quote> or,
+        equivalently, <quote>ipp/tcp</quote>
+        and <quote>ipp/udp</quote> on separate lines.</para>
+
+      <para>For each service configuration file, a socket is created
+        and bound to the appropriate port.  A service wishing to bind
+        to its port must first run <command>portrelease</command>,
+        which instructs <command>portreserve</command> to release the
+        port associated with the service.</para>
+
+      <para>Once all the reserved ports have been released, the daemon
+        exits.</para>
+    </refsect1>
+
+    <refsect1>
+      <title>Files</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term><filename
+	    path="/etc/portreserve/*">/etc/portreserve/*</filename></term>
+	  <listitem>
+	    <simpara>Service configuration files</simpara>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><filename
+	    path="/var/run/portreserve/socket">/var/run/portreserve/socket</filename></term>
+	  <listitem>
+	    <simpara>communication socket for
+	      <command>portrelease</command></simpara>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </refsect1>
+
+    <refsect1>
+      <title>See also</title>
+
+      <para><citerefentry>
+	  <refentrytitle>portrelease</refentrytitle>
+	  <manvolnum>1</manvolnum>
+	</citerefentry></para>
+    </refsect1>
+  </refentry>
+
+  <refentry id="portrelease">
+    <refentryinfo>
+      <productname>portreserve</productname>
+      <date>1 July 2008</date>
+      <author>
+	<firstname>Tim</firstname>
+	<surname>Waugh</surname>
+	<affiliation>
+	  <address><email>twaugh@redhat.com</email></address>
+	</affiliation>
+      </author>
+    </refentryinfo>
+
+    <refmeta>
+      <refentrytitle>portrelease</refentrytitle>
+      <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+      <refname>portrelease</refname>
+      <refpurpose>release previously-reserved ports</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <cmdsynopsis>
+	<command>portrelease</command>
+	<arg><replaceable>SVC</replaceable></arg>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+      <title>Description</title>
+
+      <para>The <command>portrelease</command> program instructs the
+        <command>portreserve</command> daemon to release the port
+        associated with the given service configuration file.</para>
+
+      <para>It is intended that <command>portrelease</command> is run
+        by the initscript of the service wanting the port.  For
+        example, the cups initscript might run <userinput>portrelease
+        cups</userinput>.</para>
+    </refsect1>
+
+    <refsect1>
+      <title>Exit code</title>
+
+      <para>An exit code of zero means that a best effort attempt has
+        been made to instruct the daemon to release the port.
+        Non-zero exit codes mean that the daemon is running but
+        couldn't be contacted.</para>
+    </refsect1>
+
+    <refsect1>
+      <title>See also</title>
+
+      <para><citerefentry>
+	  <refentrytitle>portreserve</refentrytitle>
+	  <manvolnum>1</manvolnum>
+	</citerefentry></para>
+    </refsect1>
+  </refentry>
+</article>
