@@ -1,0 +1,82 @@
+diff -up portreserve-0.0.4/portreserve.init.initscript-fixes portreserve-0.0.4/portreserve.init
+--- portreserve-0.0.4/portreserve.init.initscript-fixes	2009-02-26 10:14:55.000000000 +0000
++++ portreserve-0.0.4/portreserve.init	2012-02-01 11:42:35.430839706 +0000
+@@ -19,7 +19,6 @@
+ 
+ 
+ DAEMON=/sbin/portreserve
+-test -f $DAEMON || exit 0
+ 
+ . /etc/rc.d/init.d/functions
+ 
+@@ -32,10 +31,10 @@ registered_services()
+ # Determine if there are any registered services, we return true
+ # if the directory exists and there are files that will _not_ be 
+ # ignored by portreserve (i.e. files with '~' or '.' in their names)
+-	if [ ! -d /etc/portreserve ] ; then
++	if [ ! -d /etc/$NAME ] ; then
+ 		return 1
+ 	fi
+-	if [ -z "`find /etc/portreserve \! -name "*~" -a \! -name "*.*" -type f`" ] ; then
++	if [ -z "`find /etc/$NAME \! -name "*~" -a \! -name "*.*" -type f`" ] ; then
+ 		return 1
+ 	fi
+ 	return 0
+@@ -45,6 +44,7 @@ registered_services()
+ # See how we were called.
+ case "$1" in
+   start)
++	[ $UID -eq 0 ] || exit 4
+ 	echo -n $"Starting $prog: "
+ 	if registered_services ; then
+ 	    daemon $DAEMON
+@@ -52,15 +52,19 @@ case "$1" in
+ 	    echo
+ 	else
+             echo $"(not starting, no services registered)"
+-	    RETVAL=0
++	    RETVAL=6
+ 	fi
+         ;;
+   stop)
+         # Stop daemon.
++	[ $UID -eq 0 ] || exit 4
+ 	echo -n $"Stopping $prog: "
+-	[ -f "$PIDFILE" ] && killproc $DAEMON
+-	RETVAL=$?
+-	rm -f "$PIDFILE"
++	RETVAL=0
++	if [ -f "$PIDFILE" ]; then
++            killproc $DAEMON
++	    RETVAL=$?
++        fi
++	[ $RETVAL = 0 ] && rm -f "$PIDFILE"
+ 	echo
+         ;;
+   restart)
+@@ -71,10 +75,10 @@ case "$1" in
+ 	[ -f "$PIDFILE" ] && $0 restart || :
+ 	;;
+   reload)
+-	# Not supported
++	exit 3
+ 	;;
+   force-reload)
+-	$0 restart
++	[ -f "$PIDFILE" ] && $0 restart || :
+ 	;;
+   status)
+ 	status -p "$PIDFILE" $NAME
+@@ -82,7 +86,10 @@ case "$1" in
+ 	;;
+   *)
+ 	echo $"Usage: $prog {start|stop|restart|condrestart|status}"
+-	exit 3
++	if [ "$1" == "usage" ] || [ -z "$1" ]; then
++		exit 0
++	fi
++	exit 2
+ esac
+ 
+-exit 0
++exit $RETVAL

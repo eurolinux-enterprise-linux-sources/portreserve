@@ -1,14 +1,18 @@
 Summary: TCP port reservation utility
 Name: portreserve
 Version: 0.0.4
-Release: 4%{?dist}.1
+Release: 9%{?dist}
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://cyberelk.net/tim/portreserve/
 Source0: http://cyberelk.net/tim/data/portreserve/stable/%{name}-%{version}.tar.bz2
 Patch1: portreserve-infinite-loop.patch
 Patch2: portreserve-list-remove.patch
+Patch3: portreserve-initscript-fixes.patch
+Patch4: portreserve-memleak.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Requires(post): chkconfig
+Requires(preun): chkconfig
 
 BuildRequires: xmlto
 Obsoletes: portreserve-selinux < 0.0.3-3
@@ -25,6 +29,10 @@ port (generally in the init script).
 %patch1 -p1 -b .infinite-loop
 # Fixed linked list handling when removing items (bug #718178).
 %patch2 -p1 -b .list-remove
+# Initscript status code fixes (bug #614924).
+%patch3 -p1 -b .initscript-fixes
+# Fix small memory leak and move malloc() check close to call (bug #718176).
+%patch4 -p1 -b .memleak
 
 %build
 %configure --sbindir=/sbin
@@ -67,7 +75,20 @@ fi
 %{_mandir}/*/*
 
 %changelog
-* Wed Aug 31 2011 Tim Waugh <twaugh@redhat.com> 0.0.4-4:.1
+* Wed Feb  1 2012 Tim Waugh <twaugh@redhat.com> 0.0.4-9
+- Even more initscript status code fixes (bug #614924).
+
+* Thu Jan 26 2012 Tim Waugh <twaugh@redhat.com> 0.0.4-8
+- More initscript status code fixes (bug #614924).
+
+* Thu Jan 19 2012 Tim Waugh <twaugh@redhat.com> 0.0.4-7
+- Fix small memory leak and move malloc() check close to call (bug #718176).
+- Requires chkconfig (bug #712362).
+
+* Thu Dec  1 2011 Tim Waugh <twaugh@redhat.com> 0.0.4-6
+- Initscript status code fixes (bug #614924).
+
+* Wed Aug 31 2011 Tim Waugh <twaugh@redhat.com> 0.0.4-5
 - Fixed linked list handling when removing items (bug #718178).
 
 * Thu Mar  4 2010 Tim Waugh <twaugh@redhat.com> 0.0.4-4

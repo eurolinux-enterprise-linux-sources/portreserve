@@ -1,0 +1,27 @@
+diff -up portreserve-0.0.4/src/portreserve.c.memleak portreserve-0.0.4/src/portreserve.c
+--- portreserve-0.0.4/src/portreserve.c.memleak	2012-01-19 16:13:31.757414624 +0000
++++ portreserve-0.0.4/src/portreserve.c	2012-01-19 16:13:59.541890319 +0000
+@@ -242,12 +242,12 @@ portreserve (void)
+ 	struct map *maps = NULL;
+ 	const char *dir = "/etc/portreserve/";
+ 	char *cfgfile = malloc (strlen (dir) + NAME_MAX + 1);
++	if (!cfgfile)
++		return -1;
+ 	char *cfgf = cfgfile + strlen (dir);
+ 	struct dirent *d;
+ 	int unfd = unix_socket ();
+ 	DIR *cfgdir;
+-	if (!cfgfile)
+-		return -1;
+ 	strcpy (cfgfile, dir);
+ 	cfgdir = opendir (dir);
+ 	if (!cfgdir)
+@@ -311,6 +311,8 @@ portreserve (void)
+ 	if (debug)
+ 		fprintf (stderr, "All reservations taken.\n");
+ 
++	free (cfgfile);
++
+ 	return 0;
+ }
+ 
