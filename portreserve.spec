@@ -1,12 +1,13 @@
 Summary: TCP port reservation utility
 Name: portreserve
 Version: 0.0.4
-Release: 4%{?dist}
+Release: 4%{?dist}.1
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://cyberelk.net/tim/portreserve/
 Source0: http://cyberelk.net/tim/data/portreserve/stable/%{name}-%{version}.tar.bz2
 Patch1: portreserve-infinite-loop.patch
+Patch2: portreserve-list-remove.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: xmlto
@@ -22,6 +23,8 @@ port (generally in the init script).
 %setup -q
 # Prevent infinite loop.
 %patch1 -p1 -b .infinite-loop
+# Fixed linked list handling when removing items (bug #718178).
+%patch2 -p1 -b .list-remove
 
 %build
 %configure --sbindir=/sbin
@@ -64,6 +67,9 @@ fi
 %{_mandir}/*/*
 
 %changelog
+* Wed Aug 31 2011 Tim Waugh <twaugh@redhat.com> 0.0.4-4:.1
+- Fixed linked list handling when removing items (bug #718178).
+
 * Thu Mar  4 2010 Tim Waugh <twaugh@redhat.com> 0.0.4-4
 - Added comments to all patches.
 

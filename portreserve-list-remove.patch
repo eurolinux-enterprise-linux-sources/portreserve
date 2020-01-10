@@ -1,0 +1,12 @@
+diff -up portreserve-0.0.4/src/portreserve.c.list-remove portreserve-0.0.4/src/portreserve.c
+--- portreserve-0.0.4/src/portreserve.c.list-remove	2011-08-31 10:46:03.302525619 +0100
++++ portreserve-0.0.4/src/portreserve.c	2011-08-31 10:46:27.469039792 +0100
+@@ -299,7 +299,7 @@ portreserve (void)
+ 					free (m->service);
+ 					free (m);
+ 					m = next;
+-					maps = NULL;
++					*prev = next;
+ 				} else {
+ 					prev = &m->next;
+ 					m = *prev;
