@@ -1,15 +1,12 @@
-%define _hardened_build 1
-
 Summary: TCP port reservation utility
 Name: portreserve
 Version: 0.0.5
-Release: 11%{?dist}
+Release: 7%{?dist}
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://cyberelk.net/tim/portreserve/
 Source0: http://cyberelk.net/tim/data/portreserve/stable/%{name}-%{version}.tar.bz2
 Source1: portreserve.service
-Patch1: portreserve-pid-file.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires(post): systemd-units
 Requires(preun): systemd-units
@@ -33,9 +30,6 @@ port (generally in the init script).
 %prep
 %setup -q
 
-# Avoid a race during start-up if there are no configured ports (bug #1034139).
-%patch1 -p1 -b .pid-file
-
 %build
 %configure --sbindir=/sbin
 make
@@ -47,8 +41,8 @@ mkdir -p %{buildroot}%{_localstatedir}/run/portreserve
 mkdir -p %{buildroot}%{_unitdir}
 install -m644 %{SOURCE1} %{buildroot}%{_unitdir}/portreserve.service
 mkdir -p %{buildroot}%{_sysconfdir}/portreserve
-mkdir -p %{buildroot}%{_tmpfilesdir}
-cat <<EOF > %{buildroot}%{_tmpfilesdir}/portreserve.conf
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
+cat <<EOF > %{buildroot}%{_sysconfdir}/tmpfiles.d/portreserve.conf
 d %{_localstatedir}/run/portreserve 0755 root root 10d
 EOF
 
@@ -77,29 +71,14 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 %doc ChangeLog README COPYING NEWS
-%dir %{_localstatedir}/run/portreserve
+%ghost %dir %{_localstatedir}/run/portreserve
 %dir %{_sysconfdir}/portreserve
-%config %{_tmpfilesdir}/portreserve.conf
+%config %{_sysconfdir}/tmpfiles.d/portreserve.conf
 %{_unitdir}/portreserve.service
 /sbin/*
 %{_mandir}/*/*
 
 %changelog
-* Thu Jun 30 2016 Tim Waugh <twaugh@redhat.com> - 0.0.5-11
-- Enabled hardened build (bug #1092563).
-
-* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 0.0.5-10
-- Mass rebuild 2014-01-24
-
-* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 0.0.5-9
-- Mass rebuild 2013-12-27
-
-* Tue Nov 26 2013 Tim Waugh <twaugh@redhat.com> - 0.0.5-8
-- Avoid a race during start-up if there are no configured ports (bug #1034139).
-- Moved tmpfiles configuration file to correct location.
-- Don't use %ghost in manifest for state directory, in order to make
-  sure it is ready to use after installation.
-
 * Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.0.5-7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
