@@ -1,0 +1,95 @@
+2011-06-24  Tim Waugh  <twaugh@redhat.com>
+
+	* configure.in: Version 0.0.5.
+
+2011-06-23  Tim Waugh  <twaugh@redhat.com>
+
+	* src/portreserve.c: Fixed linked-list handling when removing
+	items.
+
+	* src/portreserve.c: Don't write pidfile when running in debug
+	mode.
+
+2011-05-13  Jiri Popelka <jpopelka@redhat.com>
+
+	* src/portreserve.c: Fix small memory leak (Coverity).
+
+2010-11-18  Tim Waugh  <twaugh@redhat.com>
+
+	* portreserve.init: Fixed exit code for "status" action
+	(bug #619089).
+
+2010-01-22  Tim Waugh  <twaugh@redhat.com>
+
+	* src/portreserve.c: Walk the list of newmaps correctly.
+
+2009-02-26  Tim Waugh  <twaugh@redhat.com>
+
+	* configure.in: Version 0.0.4.
+
+2009-02-26  Tim Waugh  <twaugh@redhat.com>
+
+	* portreserve.init: The initscript does not depend on the
+	$network service (bug #487250).
+
+2008-07-01  Tim Waugh  <twaugh@redhat.com>
+
+	* configure.in: Version 0.0.3.
+
+2008-07-01  Tim Waugh  <twaugh@redhat.com>
+
+	* doc/portreserve.xml: Document configuration file format more
+	precisely.
+
+	* src/portreserve.c (reserve): Iterate over each line in the
+	configuration file.
+
+	Fixes https://fedorahosted.org/portreserve/ticket/1 and
+	https://fedorahosted.org/portreserve/ticket/2.
+
+2008-07-01  Tim Waugh  <twaugh@redhat.com>
+
+	* src/portreserve.c (reserve): Change return type to struct map
+	pointer, and bind for each protocol specified.
+	(portreserve): Handle '*' in the same way as a particular service,
+	as a service may have more than one mapping.
+
+	* doc/portreserve.xml: Updated.
+
+2008-06-30  Tim Waugh  <twaugh@redhat.com>
+
+	* configure.in: Version 0.0.2.
+
+2008-05-08  Tim Waugh  <twaugh@redhat.com>
+
+	* portreserve.init (prog): Avoid stale pidfile, and fixed typo.
+
+2008-05-08  Tim Waugh  <twaugh@redhat.com>
+
+	* configure.in: Version 0.0.1.
+
+2008-05-08  Tim Waugh  <twaugh@redhat.com>
+
+	* portreserve.init: Added chkconfig header back in.
+	Simplified initscript.
+
+	* portreserve.spec.in: Fixed license tag.  Better buildroot tag.
+
+	* portreserve.init: LSB headers; PID file handling; don't start
+	daemon if there are no registered services.
+	Patch from Debian.
+
+	* src/portreserve.c (fcntl_lock): New function, from libslack.
+	(daemon_lock_pidfile): New function, from libslack.
+	(create_pidfile): New function.
+	(main): Handle TERM, INT, QUIT and KILL signals.  Create and
+	remove pidfile.
+	Patch from Debian.
+
+	* src/portreserve.c (reserve): Use htons() on the port number for
+	getservbyport().  Patch from Debian.
+
+2003-09-03  Tim Waugh  <twaugh@redhat.com>
+
+	* configure.in: Version 0.0.0.
+
