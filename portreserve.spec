@@ -1,7 +1,9 @@
+%define _hardened_build 1
+
 Summary: TCP port reservation utility
 Name: portreserve
 Version: 0.0.5
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv2+
 Group: System Environment/Daemons
 URL: http://cyberelk.net/tim/portreserve/
@@ -83,6 +85,9 @@ rm -rf %{buildroot}
 %{_mandir}/*/*
 
 %changelog
+* Thu Jun 30 2016 Tim Waugh <twaugh@redhat.com> - 0.0.5-11
+- Enabled hardened build (bug #1092563).
+
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 0.0.5-10
 - Mass rebuild 2014-01-24
 
